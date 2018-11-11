@@ -13,65 +13,25 @@
     var wtUser = 'admin';
     var wtPass = 'We8care@';
 	
+	//Setting up the Basic Authorization Header
+$.ajaxSetup({
+    headers: {'Authorization': "Basic " + btoa(wtUser + ":" + wtPass)}
+})
+
+
+// Set CORS Proxy name
+    var corsProxy = 'https://cors-anywhere.herokuapp.com/';
+
+    // Set connection name to be used in Tableau
+    var connectionName = 'Splunk data';
 	
  
-
-    // Define the schema
-  /*  myConnector.getSchema = function(schemaCallback) {
-
-       var query_cols = [{
-                id: "_sourcetype",
-                alias: "_sourcetype",
-                dataType: tableau.dataTypeEnum.string
-            }, {
-                id: "host",
-                alias: "host",
-                dataType: tableau.dataTypeEnum.string
-            },
-			{
-                id: "_raw",
-                alias: "_raw",
-                dataType: tableau.dataTypeEnum.string
-            },
-            
-        ];
-
-        var queryTableSchema = {
-            id: "query",
-            alias: "basic querying",
-            columns: query_cols
-        };
-
-        schemaCallback([queryTableSchema]);
-    };
-*/
-	
-	function buildBaseAuth(username, password) {
-    
-      var tok = username + ':' + password;
-      var hash = btoa(tok);
-  
-      basicAuth = "Basic " + hash;
-      
-      return basicAuth;
-	  
-	  console.log(basicAuth);
-    }
-	
-	  // Set connection name to be used in Tableau
-    var connectionName = 'test Splunk data';
-	
-
 
 
 
 function buildURL() {
-      // REST URL build Helper function
-      // The resulting URL should look like this, but with proxy:
-      // https://ws.webtrends.com/v3/Reporting/profiles/XXXXX/reports/YYYYYYYYYYY/?start_period=2016m01d01&end_period=2016m01d08&&period_type=indv&totals=none&format=json&language=en-EN&suppress_error_codes=true
-	  
-	 var proxy = 'https://github.com/planetdata/WDC/blob/master/splunkproxy.php?u=';
-      var url = proxy + 'https://10.0.0.4:8089/services/search/jobs/oneshot?search=search%20index%3Damita-index';
+	
+      var url = corsProxy + 'https://10.0.0.4:8089/services/search/jobs/oneshot?search=search%20index%3Damita-index';
       return url;
 	  
 	  console.log(url);
@@ -83,27 +43,38 @@ function buildURL() {
 	 console.log("Creating Tableau connection...");
     var myConnector = tableau.makeConnector();
 
+	
+	myConnector.init = function(initCallback) {
+      tableau.authType = tableau.authTypeEnum.basic;
+      initCallback();
 
-    myConnector.init = function() {
-	console.log("myconnector.init ...");
-      if (tableau.phase == tableau.phaseEnum.interactivePhase) {
-        console.log("Still in interactive phase...");
-      }
 
-      tableau.incrementalExtractColumn = 'Date';
-      tableau.initCallback();
+    // Define the schema
+   myConnector.getSchema = function(schemaCallback) {
+
+       var cols = [{
+                id: "_sourcetype",
+                alias: "_sourcetype",
+                dataType: tableau.dataTypeEnum.string
+            }, {
+                id: "host",
+                alias: "host",
+                dataType: tableau.dataTypeEnum.string
+            }
+			
+        ];
+
+        var tableSchema = {
+            id: "query",
+            alias: "basic querying",
+            columns: cols
+        };
+
+        schemaCallback([tableSchema]);
     };
 
-
-myConnector.getColumnHeaders = function () {
-console.log("getcolumnheaders ...");
-      var fieldNames = ['_sourcetype', 'host'];
-      var fieldTypes = ['string', 'string']; 
-      tableau.headersCallback(fieldNames, fieldTypes);
-    };
-
-    myConnector.getTableData = function () {
-
+	
+	
       // Create basicAuth token
       var basicAuth = buildBaseAuth(auth.username, auth.password);
       console.log("Basic auth token created.");
@@ -112,55 +83,30 @@ console.log("getcolumnheaders ...");
       var connectionURL = buildURL();
       console.log("Connection URL created.");
 
-      // Get the data
-      console.log("Fetching data...");
-      var xhr = $.ajax({
-        type: 'GET',
-        url: connectionURL,
-        dataType: 'json',
-        headers: {'Authorization': basicAuth},
-        success: function (response, status, xhr) {
-          if (response.data) {
-            var result = [];
+// Download the data
+    myConnector.getData = function(table, doneCallback) {
+        $.getJSON(connectionURL, function(resp) {
+            var feat = resp.content,
+                tableData = [];
 
-            for (host in response.data) {
-              
-                    var entry = {   'host':              host
-                                  , 'Dimension2':        _sourcetype
-                                
-                                };
-                    result.push(entry);
-                  }
-             
-			
-		
-			
-			
-			
-            console.log("Data complete. Sending to Tableau...");
-            tableau.connectionName = connectionName;
-            tableau.connectionData = connectionURL;
-            setTimeout(function(){tableau.dataCallback(result, "", false)}, 3000);
+            // Iterate over the JSON object
+            for (var i = 0, len = feat.length; i < len; i++) {
+                tableData.push({
+                    "_sourcetype": feat[i]._sourcetype,
+                    "host": feat[i].host 
+                });
+            }
 
-          } else {
-            console.log("No results found.");
-            tableau.abortWithError("No results found.");
-          }
-        },
-        error: function (xhr, ajaxOptions, thrownError) {
-          console.log("Error while trying to connect to the Splunk data source.");
-          tableau.log("Connection error: " + xhr.responseText + "\n" + thrownError);
-          tableau.abortWithError("Error while trying to connect to the Splunk data source.");
-        }
-      });
+            table.appendRows(tableData);
+            doneCallback();
+        });
     };
-  
+
     tableau.registerConnector(myConnector);
 
-   // $(document).ready(function () {
-   //   setTimeout(function(){tableau.submit()}, 3000);
-   // });
-  
+
+
+   
 
 })();
   
