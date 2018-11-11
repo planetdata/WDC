@@ -85,6 +85,7 @@ function buildURL() {
 
 
     myConnector.init = function() {
+	console.log("myconnector.init ...");
       if (tableau.phase == tableau.phaseEnum.interactivePhase) {
         console.log("Still in interactive phase...");
       }
@@ -95,6 +96,7 @@ function buildURL() {
 
 
 myConnector.getColumnHeaders = function () {
+console.log("getcolumnheaders ...");
       var fieldNames = ['_sourcetype', 'host'];
       var fieldTypes = ['string', 'string']; 
       tableau.headersCallback(fieldNames, fieldTypes);
