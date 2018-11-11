@@ -23,7 +23,7 @@
     // Define the schema
     myConnector.getSchema = function(schemaCallback) {
 
-        var query_cols = [{
+   /*     var query_cols = [{
                 id: "_sourcetype",
                 alias: "_sourcetype",
                 dataType: tableau.dataTypeEnum.string
@@ -48,7 +48,7 @@
 
         schemaCallback([queryTableSchema]);
     };
-
+*/
 	
 	function buildBaseAuth(username, password) {
     
@@ -58,6 +58,8 @@
       basicAuth = "Basic " + hash;
       
       return basicAuth;
+	  
+	  console.log(basicAuth);
     }
 	
 	  // Set connection name to be used in Tableau
