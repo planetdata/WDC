@@ -14,11 +14,7 @@
     var wtPass = 'We8care@';
 	
 	
-    // Create the connector object
-	 console.log("Creating Tableau connection...");
-    var myConnector = tableau.makeConnector();
-	
-	console.log ("done!");
+ 
 
     // Define the schema
   /*  myConnector.getSchema = function(schemaCallback) {
@@ -65,13 +61,7 @@
 	  // Set connection name to be used in Tableau
     var connectionName = 'test Splunk data';
 	
-    
-      //  var auth = {};
-      //  auth.username = tableau.username;
-       // auth.password = tableau.password;
-       // auth.rememberMe = 'true'
-       // auth = JSON.stringify(auth);
-        
+
 
 
 
@@ -83,9 +73,25 @@ function buildURL() {
 	 var proxy = 'https://github.com/planetdata/WDC/blob/master/splunkproxy.php?u=';
       var url = proxy + 'https://10.0.0.4:8089/services/search/jobs/oneshot?search=search%20index%3Damita-index';
       return url;
+	  
+	  console.log(url);
     }
 
+	
+	
+	   // Create the connector object
+	 console.log("Creating Tableau connection...");
+    var myConnector = tableau.makeConnector();
 
+
+    myConnector.init = function() {
+      if (tableau.phase == tableau.phaseEnum.interactivePhase) {
+        console.log("Still in interactive phase...");
+      }
+
+      tableau.incrementalExtractColumn = 'Date';
+      tableau.initCallback();
+    };
 
 
 myConnector.getColumnHeaders = function () {
