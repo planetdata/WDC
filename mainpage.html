@@ -133,15 +133,6 @@
         </div>
     </div>
 </body>
-<script>
-    window.onload = function(e) {
-        endDate = new Date();
-        startDate = new Date(endDate.getTime() - (90 * 86400000)); //start
-        document.getElementById("endDate").value = endDate.getMonth() + 1 + '/' + endDate.getDate() + '/' + endDate.getFullYear();
-        document.getElementById("startDate").value = startDate.getMonth() + 1 + '/' + startDate.getDate() + '/' + startDate.getFullYear();
-        $("#startDate").datepicker();
-        $("#endDate").datepicker();
-    }
-</script>
+
 
 </html>
