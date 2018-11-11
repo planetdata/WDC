@@ -17,6 +17,8 @@
     // Create the connector object
 	 console.log("Creating Tableau connection...");
     var myConnector = tableau.makeConnector();
+	
+	console.log ("done!");
 
     // Define the schema
     myConnector.getSchema = function(schemaCallback) {
